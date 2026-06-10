@@ -23,10 +23,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  webpack(config) {
-    // pg tries to resolve pg-cloudflare optionally — tell webpack to ignore it
-    config.resolve.fallback = { ...config.resolve.fallback, 'pg-cloudflare': false };
-    return config;
+  turbopack: {
+    resolveAlias: {
+      'pg-cloudflare': { browser: './node_modules/pg/lib/stream.js' },
+    },
   },
   async headers() {
     return [
