@@ -91,7 +91,7 @@ export default function Home() {
       {screen !== 'placement' && (
         <div className="flex justify-between items-center max-w-2xl mx-auto mb-6">
           <div className="flex items-center gap-3">
-            <img src="/logo.svg" alt="Todoku" className="w-8 h-8 rounded-lg" />
+            <img src="/logo.svg" alt="Todoku" className="w-12 h-12 rounded-xl" />
             <Link href="/vocab" className="text-slate-500 hover:text-indigo-400 text-sm transition-colors">
               vocab database →
             </Link>
