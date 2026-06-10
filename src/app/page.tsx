@@ -8,6 +8,7 @@ import PlacementTest from '@/components/PlacementTest';
 import InputSection from '@/components/InputSection';
 import ComprehensionScore from '@/components/ComprehensionScore';
 import VocabTable from '@/components/VocabTable';
+import AuthButton from '@/components/AuthButton';
 
 type Screen = 'placement' | 'input' | 'results';
 
@@ -88,10 +89,11 @@ export default function Home() {
     <main className="min-h-screen bg-slate-900 py-12 px-4">
       {/* Nav */}
       {screen !== 'placement' && (
-        <div className="flex justify-end max-w-2xl mx-auto mb-6">
+        <div className="flex justify-between items-center max-w-2xl mx-auto mb-6">
           <Link href="/vocab" className="text-slate-500 hover:text-indigo-400 text-sm transition-colors">
             vocab database →
           </Link>
+          <AuthButton />
         </div>
       )}
 

@@ -4,9 +4,45 @@ import { NextRequest, NextResponse } from 'next/server';
 import { parseSRT } from '@/lib/srt-parser';
 import { analyzeText } from '@/lib/comprehension';
 import { JLPTLevel } from '@/types';
+import { auth } from '@/auth';
+import { getPool } from '@/lib/db';
+
+const FREE_DAILY_LIMIT = 5;
+
+async function checkAndIncrementUsage(userId: string): Promise<boolean> {
+  const pool = getPool();
+  const res = await pool.query(
+    `INSERT INTO usage (user_id, date, count)
+     VALUES ($1, CURRENT_DATE, 1)
+     ON CONFLICT (user_id, date) DO UPDATE
+       SET count = usage.count + 1
+     RETURNING count`,
+    [userId]
+  );
+  return res.rows[0].count <= FREE_DAILY_LIMIT;
+}
 
 export async function POST(req: NextRequest) {
   try {
+    // Auth check — guests allowed but limited via middleware rate limiter
+    const session = await auth();
+    if (session?.user?.id) {
+      // Check plan
+      const pool = getPool();
+      const userRes = await pool.query('SELECT plan FROM users WHERE id = $1', [session.user.id]);
+      const plan = userRes.rows[0]?.plan ?? 'free';
+
+      if (plan !== 'pro') {
+        const withinLimit = await checkAndIncrementUsage(session.user.id);
+        if (!withinLimit) {
+          return NextResponse.json(
+            { error: 'Daily limit reached (5/day). Upgrade to Pro for unlimited analyses.' },
+            { status: 429 }
+          );
+        }
+      }
+    }
+
     const formData = await req.formData();
     const mode = formData.get('mode') as string;
     const rawLevel = formData.get('userLevel') as string;
