@@ -66,7 +66,7 @@ export default function PlacementTest({ onComplete }: Props) {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <img src="/logo.svg" alt="Todoku" className="w-20 h-20 mx-auto mb-3 rounded-2xl" />
+          <img src="/logo.svg" alt="Todoku" className="w-28 h-28 mx-auto mb-3 rounded-2xl" />
           <p className="text-slate-400 text-sm">Quick placement test · {words.length} words</p>
         </div>
 
