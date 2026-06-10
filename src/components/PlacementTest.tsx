@@ -70,6 +70,22 @@ export default function PlacementTest({ onComplete }: Props) {
           <p className="text-slate-400 text-sm">Quick placement test · {words.length} words</p>
         </div>
 
+        {/* Manual level picker */}
+        <div className="mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+          <p className="text-slate-400 text-xs text-center mb-3">Already know your level? Skip the test:</p>
+          <div className="flex gap-2 justify-center">
+            {(['N5','N4','N3','N2','N1'] as JLPTLevel[]).map(l => (
+              <button
+                key={l}
+                onClick={() => onComplete(l)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:scale-105 ${levelColor(l)}`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Progress bar */}
         <div className="w-full bg-slate-800 rounded-full h-1 mb-8">
           <div
