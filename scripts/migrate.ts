@@ -2,7 +2,7 @@
  * Run once to set up the database schema:
  *   npx tsx scripts/migrate.ts
  */
-import { Pool } from 'pg';
+import { Pool } from '@neondatabase/serverless';
 // Load .env.local manually (no dotenv dep needed in scripts)
 import { readFileSync } from 'fs';
 try {
@@ -13,10 +13,7 @@ try {
   }
 } catch { /* file may not exist in CI */ }
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 async function migrate() {
   const client = await pool.connect();

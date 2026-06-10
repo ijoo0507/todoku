@@ -23,11 +23,6 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  turbopack: {
-    resolveAlias: {
-      'pg-cloudflare': { browser: './node_modules/pg/lib/stream.js' },
-    },
-  },
   async headers() {
     return [
       {
