@@ -14,7 +14,7 @@ const securityHeaders = [
         ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
         : "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob:",
+      "img-src 'self' data: blob: https://*.googleusercontent.com",
       "font-src 'self'",
       "connect-src 'self'",
       "frame-ancestors 'none'",
@@ -23,6 +23,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  images: {
+    domains: ['lh3.googleusercontent.com'],
+  },
   async headers() {
     return [
       {
