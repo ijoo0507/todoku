@@ -9,17 +9,21 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const mode = formData.get('mode') as string;
-    const userLevel = (formData.get('userLevel') as JLPTLevel) || 'N4';
+    const rawLevel = formData.get('userLevel') as string;
+    const validLevels: JLPTLevel[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
+    const userLevel: JLPTLevel = validLevels.includes(rawLevel as JLPTLevel) ? (rawLevel as JLPTLevel) : 'N4';
 
     let text = '';
 
     if (mode === 'file') {
       const file = formData.get('file') as File;
       if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      if (file.size > 2 * 1024 * 1024) return NextResponse.json({ error: 'File too large (max 2MB)' }, { status: 413 });
       const raw = await file.text();
       text = parseSRT(raw);
     } else {
       text = (formData.get('text') as string) || '';
+      if (text.length > 100_000) return NextResponse.json({ error: 'Text too large (max 100k chars)' }, { status: 413 });
     }
 
     if (!text.trim()) {

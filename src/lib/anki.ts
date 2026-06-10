@@ -5,9 +5,13 @@ import { VocabWord } from '@/types';
  * Format: front\tback\ttags
  * Import settings: Fields separated by Tab, allow HTML in fields.
  */
+const sanitize = (s: string) => s.replace(/[\t\n\r]/g, '').trim();
+
 export function generateAnkiTSV(words: VocabWord[]): string {
-  const rows = words.map(w => {
-    const front = w.word;
+  // Cap at 500 words to prevent abuse
+  const capped = words.slice(0, 500);
+  const rows = capped.map(w => {
+    const front = sanitize(w.word);
     const back = [
       w.reading,
       posLabel(w.pos),
@@ -15,7 +19,7 @@ export function generateAnkiTSV(words: VocabWord[]): string {
     ]
       .filter(Boolean)
       .join(' · ');
-    const tags = ['todoku', w.jlpt ?? 'unknown'].join(' ');
+    const tags = sanitize(['todoku', w.jlpt ?? 'unknown'].join(' '));
     return [front, back, tags].join('\t');
   });
 
