@@ -66,7 +66,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No text to analyze' }, { status: 400 });
     }
 
-    const extraKnown = (JSON.parse((formData.get('extraKnownWords') as string) || '[]') as string[]).slice(0, 5000);
+    const extraKnown = (JSON.parse((formData.get('extraKnownWords') as string) || '[]') as string[])
+      .slice(0, 5000)
+      .filter((w): w is string => typeof w === 'string' && w.length <= 20);
     const result = await analyzeText(text, userLevel, new Set(extraKnown));
     return NextResponse.json(result);
   } catch (err) {
