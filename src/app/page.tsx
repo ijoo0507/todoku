@@ -4,11 +4,14 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { JLPTLevel, AnalysisResult, VocabWord } from '@/types';
 import { useVocab } from '@/hooks/useVocab';
+import { useUsage } from '@/hooks/useUsage';
 import PlacementTest from '@/components/PlacementTest';
 import InputSection from '@/components/InputSection';
 import ComprehensionScore from '@/components/ComprehensionScore';
 import VocabTable from '@/components/VocabTable';
 import AuthButton from '@/components/AuthButton';
+import UsageCounter from '@/components/UsageCounter';
+import UpgradeModal from '@/components/UpgradeModal';
 
 type Screen = 'placement' | 'input' | 'results';
 
@@ -19,7 +22,9 @@ export default function Home() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sessionKnown, setSessionKnown] = useState<Set<string>>(new Set()); // words marked known this session
   const [exporting, setExporting] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const { knownSet, markKnown } = useVocab();
+  const { usage, refresh: refreshUsage } = useUsage();
 
   useEffect(() => {
     const saved = localStorage.getItem('todoku-level') as JLPTLevel | null;
@@ -96,8 +101,25 @@ export default function Home() {
             <Link href="/about" className="text-slate-500 hover:text-indigo-400 text-sm transition-colors">about</Link>
             <Link href="/settings" className="text-slate-500 hover:text-indigo-400 text-sm transition-colors">settings</Link>
           </div>
-          <AuthButton />
+          <div className="flex items-center gap-3">
+            {usage && (
+              <UsageCounter
+                used={usage.used}
+                limit={usage.limit}
+                plan={usage.plan}
+                onUpgradeClick={() => setShowUpgrade(true)}
+              />
+            )}
+            <AuthButton />
+          </div>
         </div>
+      )}
+
+      {showUpgrade && (
+        <UpgradeModal
+          onClose={() => setShowUpgrade(false)}
+          isGuest={usage?.guest}
+        />
       )}
 
       {screen === 'placement' && (
@@ -108,9 +130,10 @@ export default function Home() {
         <div className="flex flex-col items-center">
           <InputSection
             userLevel={userLevel}
-            onResult={handleAnalyze}
+            onResult={(res) => { handleAnalyze(res); refreshUsage(); }}
             onLevelChange={handleLevelChange}
             extraKnownWords={knownSet}
+            onLimitReached={() => { setShowUpgrade(true); refreshUsage(); }}
           />
           <button
             onClick={() => { localStorage.removeItem('todoku-level'); setScreen('placement'); }}
