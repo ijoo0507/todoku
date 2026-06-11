@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { JLPTLevel, AnalysisResult, VocabWord } from '@/types';
 import { useVocab } from '@/hooks/useVocab';
@@ -15,16 +16,23 @@ import UpgradeModal from '@/components/UpgradeModal';
 
 type Screen = 'placement' | 'input' | 'results';
 
-export default function Home() {
+function HomeInner() {
   const [screen, setScreen] = useState<Screen>('placement');
   const [userLevel, setUserLevel] = useState<JLPTLevel>('N4');
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [sessionKnown, setSessionKnown] = useState<Set<string>>(new Set()); // words marked known this session
+  const [sessionKnown, setSessionKnown] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [toast, setToast] = useState('');
   const { knownSet, markKnown } = useVocab();
   const { usage, refresh: refreshUsage } = useUsage();
+  const searchParams = useSearchParams();
+
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 4000);
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem('todoku-level') as JLPTLevel | null;
@@ -33,6 +41,15 @@ export default function Home() {
       setScreen('input');
     }
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get('upgraded') === '1') {
+      refreshUsage();
+      showToast('🎉 Welcome to Pro! Unlimited analyses unlocked.');
+      // Clean URL
+      window.history.replaceState({}, '', '/');
+    }
+  }, [searchParams, refreshUsage, showToast]);
 
   const handlePlacementComplete = (level: JLPTLevel) => {
     setUserLevel(level);
@@ -43,7 +60,6 @@ export default function Home() {
   const handleResult = (res: AnalysisResult) => {
     setResult(res);
     setSessionKnown(new Set());
-    // Pre-select unknown words that aren't already in personal vocab
     setSelected(new Set(res.unknownWords.filter(w => !knownSet.has(w.word)).map(w => w.word)));
     setScreen('results');
   };
@@ -63,7 +79,7 @@ export default function Home() {
   };
 
   const handleMarkKnown = (word: string) => {
-    markKnown(word); // persist to localStorage
+    markKnown(word);
     setSessionKnown(prev => new Set([...prev, word]));
     setSelected(prev => { const n = new Set(prev); n.delete(word); return n; });
   };
@@ -87,16 +103,27 @@ export default function Home() {
     setExporting(false);
   };
 
-  // Send personal known words with each analysis request
-  const handleAnalyze = (res: AnalysisResult) => handleResult(res);
-
   return (
     <main className="min-h-screen bg-slate-900 py-12 px-4">
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-indigo-600 text-white px-5 py-3 rounded-xl text-sm font-medium shadow-lg animate-fade-in">
+          {toast}
+        </div>
+      )}
+
       {/* Nav */}
       {screen !== 'placement' && (
         <div className="flex justify-between items-center max-w-2xl mx-auto mb-6">
           <div className="flex items-center gap-3">
-            <img src="/icon.svg" alt="Todoku" className="w-10 h-10 rounded-xl" />
+            <div className="flex items-center gap-1.5">
+              <img src="/icon.svg" alt="Todoku" className="w-10 h-10 rounded-xl" />
+              {usage?.plan === 'pro' && (
+                <span className="px-1.5 py-0.5 rounded-md bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-[10px] font-semibold tracking-wide leading-none">
+                  PRO
+                </span>
+              )}
+            </div>
             <Link href="/vocab" className="text-slate-500 hover:text-indigo-400 text-sm transition-colors">vocab database</Link>
             <Link href="/about" className="text-slate-500 hover:text-indigo-400 text-sm transition-colors">about</Link>
             <Link href="/settings" className="text-slate-500 hover:text-indigo-400 text-sm transition-colors">settings</Link>
@@ -130,7 +157,7 @@ export default function Home() {
         <div className="flex flex-col items-center">
           <InputSection
             userLevel={userLevel}
-            onResult={(res) => { handleAnalyze(res); refreshUsage(); }}
+            onResult={(res) => { handleResult(res); refreshUsage(); }}
             onLevelChange={handleLevelChange}
             extraKnownWords={knownSet}
             onLimitReached={() => { setShowUpgrade(true); refreshUsage(); }}
@@ -177,5 +204,13 @@ export default function Home() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense>
+      <HomeInner />
+    </Suspense>
   );
 }
