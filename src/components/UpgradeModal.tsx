@@ -1,11 +1,26 @@
 'use client';
 
+import { useState } from 'react';
+
 interface Props {
   onClose: () => void;
   isGuest?: boolean;
 }
 
 export default function UpgradeModal({ onClose, isGuest }: Props) {
+  const [loading, setLoading] = useState(false);
+
+  const handleUpgrade = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/stripe/checkout', { method: 'POST' });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch {
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4"
@@ -18,7 +33,7 @@ export default function UpgradeModal({ onClose, isGuest }: Props) {
         <div className="text-center mb-6">
           <div className="text-4xl mb-3">届く</div>
           <h2 className="text-xl font-bold text-white mb-2">
-            {isGuest ? "You've used your free analyses" : "Daily limit reached"}
+            {isGuest ? "You've used your free analyses" : 'Daily limit reached'}
           </h2>
           <p className="text-slate-400 text-sm leading-relaxed">
             {isGuest
@@ -58,11 +73,13 @@ export default function UpgradeModal({ onClose, isGuest }: Props) {
 
         <div className="space-y-2">
           <button
-            onClick={() => alert('Stripe coming soon!')}
-            className="w-full py-3 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-500 transition-all"
+            onClick={handleUpgrade}
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-500 disabled:opacity-60 transition-all"
           >
-            Upgrade to Pro
+            {loading ? 'Redirecting...' : 'Upgrade to Pro'}
           </button>
+          <p className="text-center text-slate-500 text-xs">Have a coupon code? Enter it on the next page.</p>
           {isGuest && (
             <button
               onClick={() => { window.location.href = '/api/auth/signin'; }}
