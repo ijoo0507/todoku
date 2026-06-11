@@ -9,14 +9,22 @@ interface Props {
 
 export default function UpgradeModal({ onClose, isGuest }: Props) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleUpgrade = async () => {
     setLoading(true);
+    setError('');
     try {
       const res = await fetch('/api/stripe/checkout', { method: 'POST' });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error ?? 'Something went wrong');
+        setLoading(false);
+      }
     } catch {
+      setError('Network error — try again');
       setLoading(false);
     }
   };
@@ -79,6 +87,7 @@ export default function UpgradeModal({ onClose, isGuest }: Props) {
           >
             {loading ? 'Redirecting...' : 'Upgrade to Pro'}
           </button>
+          {error && <p className="text-center text-red-400 text-xs">{error}</p>}
           <p className="text-center text-slate-500 text-xs">Have a coupon code? Enter it on the next page.</p>
           {isGuest && (
             <button
