@@ -44,10 +44,11 @@ function HomeInner() {
 
   useEffect(() => {
     if (searchParams.get('upgraded') === '1') {
-      refreshUsage();
-      showToast('🎉 Welcome to Pro! Unlimited analyses unlocked.');
-      // Clean URL
       window.history.replaceState({}, '', '/');
+      // Sync real subscription status from Stripe, then refresh usage
+      fetch('/api/stripe/sync', { method: 'POST' })
+        .then(() => refreshUsage())
+        .then(() => showToast('🎉 Welcome to Pro! Unlimited analyses unlocked.'));
     }
   }, [searchParams, refreshUsage, showToast]);
 
