@@ -92,9 +92,9 @@ export default function Home() {
         <div className="flex justify-between items-center max-w-2xl mx-auto mb-6">
           <div className="flex items-center gap-3">
             <img src="/icon.svg" alt="Todoku" className="w-10 h-10 rounded-xl" />
-            <Link href="/vocab" className="text-slate-500 hover:text-indigo-400 text-sm transition-colors">
-              vocab database →
-            </Link>
+            <Link href="/vocab" className="text-slate-500 hover:text-indigo-400 text-sm transition-colors">vocab database</Link>
+            <Link href="/about" className="text-slate-500 hover:text-indigo-400 text-sm transition-colors">about</Link>
+            <Link href="/settings" className="text-slate-500 hover:text-indigo-400 text-sm transition-colors">settings</Link>
           </div>
           <AuthButton />
         </div>
