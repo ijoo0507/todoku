@@ -179,7 +179,7 @@ export const MEANINGS: Record<string, string> = {
   '使命':'mission, calling','力':'power, strength','魔法':'magic',
   '勇気':'courage, bravery','愛':'love','愛情':'affection, love',
   '絆':'bond, tie','友情':'friendship','信頼':'trust, confidence',
-  '約束':'promise','笑顔':'smile','涙':'tear, tears','怒り':'anger',
+  '笑顔':'smile','涙':'tear, tears','怒り':'anger',
   '恐れ':'fear','悲しみ':'sadness','喜び':'joy, delight','孤独':'loneliness',
   '後悔':'regret','誇り':'pride','覚悟':'resolution, preparedness',
   '本当':'truth, reality','嘘':'lie','秘密':'secret','真実':'truth',
