@@ -45,6 +45,8 @@ export async function tokenizeText(text: string): Promise<Token[]> {
     .filter(t => {
       if (/^[ぁ-ゖ]$/.test(t.surface_form)) return false;
       if (/^\d+$/.test(t.surface_form)) return false;
+      // Skip proper nouns (character names, place names) — no dictionary meaning
+      if (t.pos_detail_1 === '固有名詞') return false;
       return true;
     })
     .map(t => ({
