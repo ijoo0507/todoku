@@ -7,6 +7,7 @@ export interface VocabWord {
   frequency: number;
   jlpt?: JLPTLevel;
   known: boolean;
+  meaning?: string;
 }
 
 export interface AnalysisResult {
