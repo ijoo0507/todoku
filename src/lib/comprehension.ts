@@ -1,5 +1,6 @@
 import { tokenizeText } from './tokenizer';
 import { getKnownWords, JLPT_WORDS } from './jlpt-data';
+import { MEANINGS } from '@/data/meanings';
 import { JLPTLevel, VocabWord, AnalysisResult } from '@/types';
 
 export async function analyzeText(
@@ -38,6 +39,7 @@ export async function analyzeText(
         frequency: count,
         jlpt: getWordLevel(word),
         known: false,
+        meaning: MEANINGS[word],
       });
     }
   }

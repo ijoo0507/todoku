@@ -25,7 +25,6 @@ function HomeInner() {
   const [exporting, setExporting] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [toast, setToast] = useState('');
-  const [loadingMeanings, setLoadingMeanings] = useState(false);
   const { knownSet, markKnown } = useVocab();
   const { usage, refresh: refreshUsage } = useUsage();
   const searchParams = useSearchParams();
@@ -64,29 +63,6 @@ function HomeInner() {
     setSessionKnown(new Set());
     setSelected(new Set(res.unknownWords.filter(w => !knownSet.has(w.word)).map(w => w.word)));
     setScreen('results');
-    // Async: fetch meanings without blocking
-    const words = res.unknownWords.map(w => w.word).slice(0, 60);
-    if (words.length > 0) {
-      setLoadingMeanings(true);
-      fetch('/api/dictionary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ words }),
-      })
-        .then(r => r.json())
-        .then((meanings: Record<string, string>) => {
-          setResult(prev => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              unknownWords: prev.unknownWords.map(w =>
-                meanings[w.word] ? { ...w, meaning: meanings[w.word] } : w
-              ),
-            };
-          });
-        })
-        .finally(() => setLoadingMeanings(false));
-    }
   };
 
   const handleLevelChange = (level: JLPTLevel) => {
@@ -208,7 +184,6 @@ function HomeInner() {
             onMarkKnown={handleMarkKnown}
             markedKnown={sessionKnown}
             userLevel={userLevel}
-            loadingMeanings={loadingMeanings}
           />
           <div className="w-full max-w-2xl flex gap-3">
             <button

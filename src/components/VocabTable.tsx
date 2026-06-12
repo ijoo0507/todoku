@@ -12,17 +12,18 @@ interface Props {
   onMarkKnown?: (word: string) => void;
   markedKnown?: Set<string>;
   userLevel?: JLPTLevel;
-  loadingMeanings?: boolean;
 }
 
 const LEVELS: (JLPTLevel | 'all' | 'other')[] = ['all', 'N5', 'N4', 'N3', 'N2', 'N1', 'other'];
 
 export default function VocabTable({
   words, selected, onToggle, onSelectAll, onDeselectAll,
-  onMarkKnown, markedKnown, userLevel, loadingMeanings,
+  onMarkKnown, markedKnown, userLevel,
 }: Props) {
   const [search, setSearch] = useState('');
   const [levelFilter, setLevelFilter] = useState<JLPTLevel | 'all' | 'other'>('all');
+  const [showMeanings, setShowMeanings] = useState(true);
+  const [showReadings, setShowReadings] = useState(true);
 
   const filtered = words.filter(w => {
     if (markedKnown?.has(w.word)) return false; // hide known words from list
@@ -69,25 +70,35 @@ export default function VocabTable({
         <button onClick={onDeselectAll} className="text-xs text-slate-400 hover:text-white">none</button>
       </div>
 
-      {/* Search */}
-      <input
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        placeholder="Search words, readings, or meanings..."
-        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 mb-3"
-      />
+      {/* Search + toggles */}
+      <div className="flex gap-2 mb-3">
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search..."
+          className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+        />
+        <button
+          onClick={() => setShowReadings(p => !p)}
+          className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${showReadings ? 'bg-slate-700 text-white border-slate-600' : 'bg-slate-800 text-slate-500 border-slate-700'}`}
+          title="Toggle readings"
+        >
+          reading
+        </button>
+        <button
+          onClick={() => setShowMeanings(p => !p)}
+          className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${showMeanings ? 'bg-slate-700 text-white border-slate-600' : 'bg-slate-800 text-slate-500 border-slate-700'}`}
+          title="Toggle meanings"
+        >
+          meaning
+        </button>
+      </div>
 
       <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-[20px_1fr_2fr_48px_32px] gap-3 px-4 py-2 text-xs text-slate-500 border-b border-slate-700 font-medium">
+        <div className="grid grid-cols-[20px_1fr_48px_32px] gap-3 px-4 py-2 text-xs text-slate-500 border-b border-slate-700 font-medium">
           <span></span>
-          <span>word · reading</span>
-          <span className="flex items-center gap-1">
-            meaning
-            {loadingMeanings && (
-              <span className="text-slate-600 animate-pulse">· loading...</span>
-            )}
-          </span>
+          <span>word{showReadings ? ' · reading' : ''}{showMeanings ? ' · meaning' : ''}</span>
           <span>level</span>
           <span></span>
         </div>
@@ -102,7 +113,7 @@ export default function VocabTable({
             filtered.map(w => (
               <div
                 key={w.word}
-                className="grid grid-cols-[20px_1fr_2fr_48px_32px] gap-3 px-4 py-3 items-center hover:bg-slate-700/30 transition-colors group"
+                className="grid grid-cols-[20px_1fr_48px_32px] gap-3 px-4 py-3 items-center hover:bg-slate-700/30 transition-colors group"
               >
                 <input
                   type="checkbox"
@@ -112,18 +123,15 @@ export default function VocabTable({
                 />
                 <div>
                   <span className="text-white text-sm font-medium">{w.word}</span>
-                  {w.reading !== w.word && (
+                  {showReadings && w.reading !== w.word && (
                     <span className="text-slate-500 text-xs ml-1.5">{w.reading}</span>
                   )}
                   <span className="text-slate-600 text-xs ml-1.5">{w.frequency}×</span>
-                </div>
-                <div className="text-slate-400 text-xs leading-relaxed">
-                  {w.meaning ? (
-                    w.meaning
-                  ) : loadingMeanings ? (
-                    <span className="text-slate-600">...</span>
-                  ) : (
-                    <span className="text-slate-600">—</span>
+                  {showMeanings && w.meaning && (
+                    <span className="text-slate-400 text-xs ml-2 italic">{w.meaning}</span>
+                  )}
+                  {showMeanings && !w.meaning && (
+                    <span className="text-slate-700 text-xs ml-2">—</span>
                   )}
                 </div>
                 <div>
