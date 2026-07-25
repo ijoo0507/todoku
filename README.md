@@ -40,6 +40,8 @@ Learning Japanese from native media is hard because you don't know which words y
 ## Screenshots
 
 <img width="786" height="542" alt="image" src="https://github.com/user-attachments/assets/aa740e67-d663-4e5e-a4ac-4756198fbc83" />
+<img width="830" height="565" alt="image" src="https://github.com/user-attachments/assets/511ee1f0-0045-4f12-8293-271fcb2d83a8" />
+
 
 ## Running locally
 
