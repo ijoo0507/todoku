@@ -46,7 +46,7 @@ export const MEANINGS: Record<string, string> = {
   '秋':'autumn, fall','冬':'winter','今日':'today','明日':'tomorrow',
   '昨日':'yesterday','今':'now','朝':'morning','昼':'noon, daytime',
   '夜':'night, evening','年':'year','月':'month, moon','日':'day, sun',
-  '時':'hour, time','分':'minute','秒':'second','円':'yen','言葉':'word, language',
+  '時':'hour, time','分':'minute','秒':'second','円':'yen',
   '日本語':'Japanese language','英語':'English language',
 
   // ── N4 verbs ──
@@ -65,7 +65,7 @@ export const MEANINGS: Record<string, string> = {
   '別れる':'to part, break up','迎える':'to welcome, pick up','誘う':'to invite',
   '断る':'to refuse, decline','申し込む':'to apply for','予約する':'to reserve, book',
   // ── N4 adjectives ──
-  '痛い':'painful, sore','熱い':'hot (to touch)','冷たい':'cold (to touch)',
+  '痛い':'painful, sore','熱い':'hot (to touch)',
   '甘い':'sweet','辛い':'spicy, painful','苦い':'bitter','美味しい':'delicious, tasty',
   '正しい':'correct, right','大切':'important, precious','必要':'necessary, needed',
   '十分':'enough, sufficient','同じ':'same, identical','特別':'special',
@@ -81,7 +81,7 @@ export const MEANINGS: Record<string, string> = {
   '成功':'success','努力':'effort, hard work','計画':'plan','予定':'schedule, plan',
   '約束':'promise, appointment','注意':'caution, attention',
   '地下鉄':'subway, metro','新幹線':'bullet train','バイク':'motorcycle',
-  '自転車':'bicycle','道':'road, way','橋':'bridge','建物':'building',
+  '自転車':'bicycle','建物':'building',
   'ビル':'building','マンション':'apartment, condo','アパート':'apartment',
   '図書館':'library','美術館':'art museum','博物館':'museum',
   'レストラン':'restaurant','コンビニ':'convenience store','スーパー':'supermarket',
@@ -120,7 +120,7 @@ export const MEANINGS: Record<string, string> = {
   // ── N3 nouns ──
   '影響':'influence, effect','結果':'result, outcome','原因':'cause, reason',
   '状況':'situation, circumstances','場合':'case, situation','立場':'position, standpoint',
-  '態度':'attitude, manner','可能性':'possibility, potential','情報':'information',
+  '態度':'attitude, manner','情報':'information',
   '知識':'knowledge','判断':'judgment, decision','決定':'decision',
   '対策':'countermeasure','目標':'goal, target','課題':'issue, task',
   '法律':'law','規則':'rule, regulation','制度':'system, institution',

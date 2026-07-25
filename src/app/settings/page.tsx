@@ -5,15 +5,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { useVocab } from '@/hooks/useVocab';
-import { useUsage } from '@/hooks/useUsage';
 
 export default function SettingsPage() {
   const { data: session } = useSession();
   const { knownSet } = useVocab();
-  const { usage } = useUsage();
   const [cleared, setCleared] = useState(false);
   const [levelReset, setLevelReset] = useState(false);
-  const [portalLoading, setPortalLoading] = useState(false);
 
   const handleClearVocab = () => {
     if (!confirm('Clear all marked words? This cannot be undone.')) return;
@@ -24,17 +21,6 @@ export default function SettingsPage() {
   const handleResetLevel = () => {
     localStorage.removeItem('todoku-level');
     setLevelReset(true);
-  };
-
-  const handleManageSubscription = async () => {
-    setPortalLoading(true);
-    try {
-      const res = await fetch('/api/stripe/portal', { method: 'POST' });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-    } catch {
-      setPortalLoading(false);
-    }
   };
 
   const handleExportVocab = () => {
@@ -92,44 +78,6 @@ export default function SettingsPage() {
               <p className="text-slate-400 text-sm">Not signed in — <Link href="/" className="text-indigo-400 hover:text-indigo-300">sign in</Link> to sync vocab across devices.</p>
             )}
           </div>
-
-          {/* Subscription */}
-          {session?.user && (
-            <div className="bg-slate-800 rounded-2xl p-5 border border-slate-700">
-              <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-4">Subscription</h2>
-              <div className="flex items-center justify-between">
-                <div>
-                  {usage?.plan === 'pro' ? (
-                    <>
-                      <p className="text-white text-sm font-medium">Pro plan</p>
-                      <p className="text-slate-500 text-xs mt-0.5">Unlimited analyses</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-white text-sm font-medium">Free plan</p>
-                      <p className="text-slate-500 text-xs mt-0.5">5 analyses per day</p>
-                    </>
-                  )}
-                </div>
-                {usage?.plan === 'pro' ? (
-                  <button
-                    onClick={handleManageSubscription}
-                    disabled={portalLoading}
-                    className="px-4 py-2 rounded-lg bg-slate-700 text-slate-300 text-sm hover:bg-slate-600 disabled:opacity-50 transition-all"
-                  >
-                    {portalLoading ? 'Loading...' : 'Manage'}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => { window.location.href = '/'; }}
-                    className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm hover:bg-indigo-500 transition-all"
-                  >
-                    Upgrade
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Level */}
           <div className="bg-slate-800 rounded-2xl p-5 border border-slate-700">

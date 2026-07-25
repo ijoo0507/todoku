@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import FeedbackButton from "@/components/FeedbackButton";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "届く · Todoku",
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <Providers>
           {children}
+          <Footer />
           <FeedbackButton />
         </Providers>
       </body>

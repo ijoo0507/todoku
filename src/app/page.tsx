@@ -1,33 +1,26 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { JLPTLevel, AnalysisResult, VocabWord } from '@/types';
 import { useVocab } from '@/hooks/useVocab';
-import { useUsage } from '@/hooks/useUsage';
 import PlacementTest from '@/components/PlacementTest';
 import InputSection from '@/components/InputSection';
 import ComprehensionScore from '@/components/ComprehensionScore';
 import VocabTable from '@/components/VocabTable';
 import AuthButton from '@/components/AuthButton';
-import UsageCounter from '@/components/UsageCounter';
-import UpgradeModal from '@/components/UpgradeModal';
 
 type Screen = 'placement' | 'input' | 'results';
 
-function HomeInner() {
+export default function Home() {
   const [screen, setScreen] = useState<Screen>('placement');
   const [userLevel, setUserLevel] = useState<JLPTLevel>('N4');
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sessionKnown, setSessionKnown] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
-  const [showUpgrade, setShowUpgrade] = useState(false);
   const [toast, setToast] = useState('');
   const { knownSet, markKnown } = useVocab();
-  const { usage, refresh: refreshUsage } = useUsage();
-  const searchParams = useSearchParams();
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -41,16 +34,6 @@ function HomeInner() {
       setScreen('input');
     }
   }, []);
-
-  useEffect(() => {
-    if (searchParams.get('upgraded') === '1') {
-      window.history.replaceState({}, '', '/');
-      // Sync real subscription status from Stripe, then refresh usage
-      fetch('/api/stripe/sync', { method: 'POST' })
-        .then(() => refreshUsage())
-        .then(() => showToast('🎉 Welcome to Pro! Unlimited analyses unlocked.'));
-    }
-  }, [searchParams, refreshUsage, showToast]);
 
   const handlePlacementComplete = (level: JLPTLevel) => {
     setUserLevel(level);
@@ -104,6 +87,9 @@ function HomeInner() {
     setExporting(false);
   };
 
+  // showToast kept for future notices; reference to avoid unused warning
+  void showToast;
+
   return (
     <main className="min-h-screen bg-slate-900 py-12 px-4">
       {/* Toast */}
@@ -117,37 +103,15 @@ function HomeInner() {
       {screen !== 'placement' && (
         <div className="flex justify-between items-center max-w-2xl mx-auto mb-6">
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <img src="/icon.svg" alt="Todoku" className="w-10 h-10 rounded-xl" />
-              {usage?.plan === 'pro' && (
-                <span className="px-1.5 py-0.5 rounded-md bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-[10px] font-semibold tracking-wide leading-none">
-                  PRO
-                </span>
-              )}
-            </div>
+            <img src="/icon.svg" alt="Todoku" className="w-10 h-10 rounded-xl" />
             <Link href="/vocab" className="text-slate-500 hover:text-indigo-400 text-sm transition-colors">vocab database</Link>
             <Link href="/about" className="text-slate-500 hover:text-indigo-400 text-sm transition-colors">about</Link>
             <Link href="/settings" className="text-slate-500 hover:text-indigo-400 text-sm transition-colors">settings</Link>
           </div>
           <div className="flex items-center gap-3">
-            {usage && (
-              <UsageCounter
-                used={usage.used}
-                limit={usage.limit}
-                plan={usage.plan}
-                onUpgradeClick={() => setShowUpgrade(true)}
-              />
-            )}
             <AuthButton />
           </div>
         </div>
-      )}
-
-      {showUpgrade && (
-        <UpgradeModal
-          onClose={() => setShowUpgrade(false)}
-          isGuest={usage?.guest}
-        />
       )}
 
       {screen === 'placement' && (
@@ -158,10 +122,9 @@ function HomeInner() {
         <div className="flex flex-col items-center">
           <InputSection
             userLevel={userLevel}
-            onResult={(res) => { handleResult(res); refreshUsage(); }}
+            onResult={handleResult}
             onLevelChange={handleLevelChange}
             extraKnownWords={knownSet}
-            onLimitReached={() => { setShowUpgrade(true); refreshUsage(); }}
           />
           <button
             onClick={() => { localStorage.removeItem('todoku-level'); setScreen('placement'); }}
@@ -206,13 +169,5 @@ function HomeInner() {
         </div>
       )}
     </main>
-  );
-}
-
-export default function Home() {
-  return (
-    <Suspense>
-      <HomeInner />
-    </Suspense>
   );
 }

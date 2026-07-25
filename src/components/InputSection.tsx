@@ -8,10 +8,9 @@ interface Props {
   onResult: (result: AnalysisResult) => void;
   onLevelChange: (level: JLPTLevel) => void;
   extraKnownWords?: Set<string>;
-  onLimitReached?: () => void;
 }
 
-export default function InputSection({ userLevel, onResult, onLevelChange, extraKnownWords, onLimitReached }: Props) {
+export default function InputSection({ userLevel, onResult, onLevelChange, extraKnownWords }: Props) {
   const [tab, setTab] = useState<'anime' | 'lyrics'>('anime');
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,10 +23,6 @@ export default function InputSection({ userLevel, onResult, onLevelChange, extra
     setError('');
     try {
       const res = await fetch('/api/analyze', { method: 'POST', body: formData });
-      if (res.status === 429) {
-        onLimitReached?.();
-        return;
-      }
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       onResult(data);
