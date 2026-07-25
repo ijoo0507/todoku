@@ -61,5 +61,5 @@ AUTH_GOOGLE_SECRET=      # Google OAuth client secret
 
 ## Roadmap
 
-- Freemium tiers (guest / free account / Pro) with vocab syncing to Postgres
+- Expanded dictionary coverage and example sentences
 - Community launch (r/LearnJapanese, r/anime)
