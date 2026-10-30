@@ -9,6 +9,7 @@ import InputSection from '@/components/InputSection';
 import ComprehensionScore from '@/components/ComprehensionScore';
 import VocabTable from '@/components/VocabTable';
 import AuthButton from '@/components/AuthButton';
+import { track } from '@/lib/analytics';
 
 type Screen = 'placement' | 'input' | 'results';
 
@@ -19,6 +20,8 @@ export default function Home() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sessionKnown, setSessionKnown] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
+  const [shareTitle, setShareTitle] = useState('');
+  const [sharing, setSharing] = useState(false);
   const [toast, setToast] = useState('');
   const { knownSet, markKnown } = useVocab();
 
@@ -30,6 +33,8 @@ export default function Home() {
   useEffect(() => {
     const saved = localStorage.getItem('todoku-level') as JLPTLevel | null;
     if (saved) {
+      // localStorage is only readable after hydration, so this runs in an effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUserLevel(saved);
       setScreen('input');
     }
@@ -41,8 +46,10 @@ export default function Home() {
     setScreen('input');
   };
 
-  const handleResult = (res: AnalysisResult) => {
+  const handleResult = (res: AnalysisResult, fileName?: string) => {
     setResult(res);
+    // Prefill the share title from the subtitle file name, minus the extension
+    setShareTitle(fileName ? fileName.replace(/\.[^.]+$/, '').slice(0, 100) : '');
     setSessionKnown(new Set());
     setSelected(new Set(res.unknownWords.filter(w => !knownSet.has(w.word)).map(w => w.word)));
     setScreen('results');
@@ -72,6 +79,7 @@ export default function Home() {
     if (!result || selected.size === 0) return;
     setExporting(true);
     const words: VocabWord[] = result.unknownWords.filter(w => selected.has(w.word) && !sessionKnown.has(w.word));
+    track('export_deck', { wordCount: words.length });
     const res = await fetch('/api/export', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -87,8 +95,35 @@ export default function Home() {
     setExporting(false);
   };
 
-  // showToast kept for future notices; reference to avoid unused warning
-  void showToast;
+  const handleShare = async () => {
+    if (!result || sharing) return;
+    setSharing(true);
+    try {
+      // Share the score as displayed, including words marked known this session
+      const res = await fetch('/api/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          totalUnique: result.totalUniqueWords,
+          known: Math.min(result.totalUniqueWords, result.knownWords + sessionKnown.size),
+          title: shareTitle,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.id) throw new Error(data.error || 'Could not create share link');
+      const url = `${window.location.origin}/s/${data.id}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast('Link copied to clipboard');
+      } catch {
+        showToast(url);
+      }
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : 'Could not create share link');
+    } finally {
+      setSharing(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-slate-900 py-12 px-4">
@@ -161,6 +196,22 @@ export default function Home() {
               className="flex-1 py-3 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               {exporting ? 'Exporting...' : `Export ${selected.size} cards to Anki`}
+            </button>
+          </div>
+          <div className="w-full max-w-2xl flex gap-3">
+            <input
+              value={shareTitle}
+              onChange={e => setShareTitle(e.target.value)}
+              maxLength={100}
+              placeholder="Title (optional), e.g. Frieren ep 1"
+              className="flex-1 min-w-0 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+            />
+            <button
+              onClick={handleShare}
+              disabled={sharing}
+              className="shrink-0 px-5 py-3 rounded-xl border border-indigo-500 text-indigo-300 text-sm font-medium hover:bg-indigo-900/30 disabled:opacity-40 transition-all"
+            >
+              {sharing ? 'Sharing...' : 'Share result'}
             </button>
           </div>
           <div className="text-slate-600 text-xs">

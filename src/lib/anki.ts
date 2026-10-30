@@ -12,13 +12,13 @@ export function generateAnkiTSV(words: VocabWord[]): string {
   const capped = words.slice(0, 500);
   const rows = capped.map(w => {
     const front = sanitize(w.word);
-    const back = [
+    const back = sanitize([
       w.reading,
       posLabel(w.pos),
       w.jlpt ? `[${w.jlpt}]` : '',
     ]
       .filter(Boolean)
-      .join(' · ');
+      .join(' · '));
     const tags = sanitize(['todoku', w.jlpt ?? 'unknown'].join(' '));
     return [front, back, tags].join('\t');
   });

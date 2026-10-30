@@ -1,7 +1,11 @@
-import { tokenizeText } from './tokenizer';
+import { tokenizeText, Token } from './tokenizer';
 import { getKnownWords, JLPT_WORDS } from './jlpt-data';
 import MEANINGS from '@/data/meanings.json';
 import { JLPTLevel, VocabWord, AnalysisResult } from '@/types';
+
+// Frequency of each unique dictionary form. Contains no per-user data, so it is
+// safe to share across users in the analysis cache.
+export type FrequencyMap = Record<string, { count: number; reading: string; pos: string }>;
 
 export async function analyzeText(
   text: string,
@@ -9,26 +13,36 @@ export async function analyzeText(
   extraKnown: Set<string> = new Set()
 ): Promise<AnalysisResult> {
   const tokens = await tokenizeText(text);
-  const baseKnown = getKnownWords(userLevel);
-  // Merge JLPT level words with personally known words
-  const knownWords = new Set([...baseKnown, ...extraKnown]);
+  return scoreFrequency(buildFrequency(tokens), userLevel, extraKnown);
+}
 
-  // Count frequency of each unique dictionary form
-  const freq = new Map<string, { count: number; reading: string; pos: string }>();
+export function buildFrequency(tokens: Token[]): FrequencyMap {
+  const freq: FrequencyMap = {};
   for (const token of tokens) {
     const key = token.basicForm;
-    if (!freq.has(key)) {
-      freq.set(key, { count: 0, reading: token.reading, pos: token.pos });
+    if (!freq[key]) {
+      freq[key] = { count: 0, reading: token.reading, pos: token.pos };
     }
-    freq.get(key)!.count++;
+    freq[key].count++;
   }
+  return freq;
+}
 
-  const totalUniqueWords = freq.size;
+export function scoreFrequency(
+  freq: FrequencyMap,
+  userLevel: JLPTLevel,
+  extraKnown: Set<string> = new Set()
+): AnalysisResult {
+  const baseKnown = getKnownWords(userLevel);
+
+  const entries = Object.entries(freq);
+  const totalUniqueWords = entries.length;
   let knownCount = 0;
   const unknownWords: VocabWord[] = [];
 
-  for (const [word, { count, reading, pos }] of freq) {
-    const isKnown = knownWords.has(word);
+  for (const [word, { count, reading, pos }] of entries) {
+    // Merge JLPT level words with personally known words
+    const isKnown = baseKnown.has(word) || extraKnown.has(word);
     if (isKnown) {
       knownCount++;
     } else {
@@ -60,10 +74,13 @@ export async function analyzeText(
   };
 }
 
-function getWordLevel(word: string): JLPTLevel | undefined {
-  const levels: JLPTLevel[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
-  for (const level of levels) {
-    if (JLPT_WORDS[level].has(word)) return level;
-  }
-  return undefined;
+// Built once at module load. Iterate hardest to easiest so a word listed at
+// several levels resolves to the easiest one, matching the old N5-first loop.
+const WORD_LEVEL = new Map<string, JLPTLevel>();
+for (const level of ['N1', 'N2', 'N3', 'N4', 'N5'] as JLPTLevel[]) {
+  for (const word of JLPT_WORDS[level]) WORD_LEVEL.set(word, level);
+}
+
+export function getWordLevel(word: string): JLPTLevel | undefined {
+  return WORD_LEVEL.get(word);
 }

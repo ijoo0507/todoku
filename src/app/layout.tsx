@@ -3,8 +3,16 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 import FeedbackButton from "@/components/FeedbackButton";
 import Footer from "@/components/Footer";
+import { Analytics } from "@vercel/analytics/next";
+
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "http://localhost:3000");
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "届く · Todoku",
   description: "How much Japanese can you understand? Comprehension scoring for anime and J-pop.",
   icons: {
@@ -26,6 +34,7 @@ export default function RootLayout({
           <Footer />
           <FeedbackButton />
         </Providers>
+        <Analytics />
       </body>
     </html>
   );

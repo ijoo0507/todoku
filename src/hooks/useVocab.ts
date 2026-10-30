@@ -22,6 +22,8 @@ export function useVocab() {
   const [knownSet, setKnownSet] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    // localStorage is only readable after hydration, so this runs in an effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setKnownSet(loadFromStorage());
   }, []);
 

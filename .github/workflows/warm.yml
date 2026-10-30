@@ -1,0 +1,17 @@
+# Keeps the kuromoji tokenizer warm. Vercel Hobby crons run at most daily,
+# so this pings /api/warm every 5 minutes instead.
+# Set the repository variable SITE_URL (e.g. https://todoku.app).
+name: Warm tokenizer
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    if: ${{ vars.SITE_URL != '' }}
+    steps:
+      - name: Ping /api/warm
+        run: curl -fsS --max-time 30 "${{ vars.SITE_URL }}/api/warm"
