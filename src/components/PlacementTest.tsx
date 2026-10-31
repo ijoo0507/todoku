@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { PlacementWord, JLPTLevel } from '@/types';
+import { track } from '@/lib/analytics';
 
 interface Props {
   onComplete: (level: JLPTLevel) => void;
@@ -42,6 +43,7 @@ export default function PlacementTest({ onComplete }: Props) {
       body: JSON.stringify({ answers: finalAnswers }),
     });
     const { level } = await res.json();
+    track('placement_complete', { estimatedLevel: level });
     onComplete(level);
   };
 
@@ -121,7 +123,7 @@ export default function PlacementTest({ onComplete }: Props) {
             className="py-4 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-medium hover:bg-slate-700 hover:border-slate-600 transition-all"
           >
             知らない
-            <div className="text-xs text-slate-500 mt-0.5">don't know</div>
+            <div className="text-xs text-slate-500 mt-0.5">don&apos;t know</div>
           </button>
           <button
             onClick={() => answer(true)}

@@ -69,6 +69,16 @@ async function migrate() {
         count INTEGER NOT NULL DEFAULT 0,
         UNIQUE(user_id, date)
       );
+
+      -- Public share links: score summary only, never the analyzed text
+      CREATE TABLE IF NOT EXISTS shares (
+        id TEXT PRIMARY KEY,
+        score INTEGER NOT NULL,
+        total_unique INTEGER NOT NULL,
+        known INTEGER NOT NULL,
+        title TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
     `);
     console.log('✅ Migration complete');
   } finally {

@@ -16,6 +16,7 @@ export interface AnalysisResult {
   knownWords: number;
   unknownWords: VocabWord[];
   userLevel: JLPTLevel;
+  charCount?: number; // length of the parsed text, for analytics
 }
 
 export interface PlacementWord {

@@ -52,14 +52,34 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). For auth and vocab sync, add a `.env.local` with:
+Open [http://localhost:3000](http://localhost:3000). Copy `.env.example` to `.env.local` and fill it in:
 
 ```
-DATABASE_URL=            # Neon Postgres connection string
-AUTH_SECRET=             # openssl rand -base64 32
-AUTH_GOOGLE_ID=          # Google OAuth client ID
-AUTH_GOOGLE_SECRET=      # Google OAuth client secret
+DATABASE_URL=              # Neon Postgres connection string
+AUTH_SECRET=               # openssl rand -base64 32
+GOOGLE_CLIENT_ID=          # Google OAuth client ID
+GOOGLE_CLIENT_SECRET=      # Google OAuth client secret
+NEXT_PUBLIC_SITE_URL=      # e.g. https://todoku.app, used for share links and OG cards
+NEXT_PUBLIC_POSTHOG_KEY=   # PostHog project key; analytics are off when empty
+UPSTASH_REDIS_REST_URL=    # Upstash Redis for rate limits + analysis cache
+UPSTASH_REDIS_REST_TOKEN=  # both fail open (no limit, no cache) when empty
 ```
+
+Set up or update the database schema (safe to re-run):
+
+```bash
+npx tsx scripts/migrate.ts
+```
+
+Run the unit tests:
+
+```bash
+npm test
+npm run test:coverage
+```
+
+The tokenizer is kept warm by `.github/workflows/warm.yml`, which pings `/api/warm`
+every 5 minutes. Set the repository variable `SITE_URL` to enable it.
 
 ## Roadmap
 

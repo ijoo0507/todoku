@@ -11,13 +11,20 @@ export interface Token {
 
 // Singleton tokenizer (expensive to initialize)
 let _tokenizer: kuromoji.Tokenizer<kuromoji.IpadicFeatures> | null = null;
+// In-flight build, so concurrent first requests share one dictionary load
+let _building: Promise<kuromoji.Tokenizer<kuromoji.IpadicFeatures>> | null = null;
+
+export function isTokenizerReady(): boolean {
+  return _tokenizer !== null;
+}
 
 export async function getTokenizer(): Promise<kuromoji.Tokenizer<kuromoji.IpadicFeatures>> {
   if (_tokenizer) return _tokenizer;
+  if (_building) return _building;
 
   const dicPath = path.join(process.cwd(), 'node_modules/kuromoji/dict');
 
-  return new Promise((resolve, reject) => {
+  _building = new Promise<kuromoji.Tokenizer<kuromoji.IpadicFeatures>>((resolve, reject) => {
     kuromoji.builder({ dicPath }).build((err, tokenizer) => {
       if (err) reject(err);
       else {
@@ -25,7 +32,8 @@ export async function getTokenizer(): Promise<kuromoji.Tokenizer<kuromoji.Ipadic
         resolve(tokenizer);
       }
     });
-  });
+  }).finally(() => { _building = null; });
+  return _building;
 }
 
 // Parts of speech to include as content words

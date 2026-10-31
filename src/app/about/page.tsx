@@ -19,7 +19,7 @@ export default function AboutPage() {
         <div className="mb-12">
           <h1 className="text-3xl font-bold text-white mb-3">How Todoku works</h1>
           <p className="text-slate-400 leading-relaxed">
-            Todoku (届く, "to reach") measures how much of a Japanese text you can actually understand,
+            Todoku (届く, &ldquo;to reach&rdquo;) measures how much of a Japanese text you can actually understand,
             using real content like anime subtitles and song lyrics instead of textbook exercises.
           </p>
         </div>
@@ -33,7 +33,7 @@ export default function AboutPage() {
               When you upload a subtitle file or paste lyrics, Todoku tokenizes the text using
               kuromoji (a Japanese morphological analyzer) to extract content words: nouns, verbs,
               adjectives, and adverbs. Function words like particles (は, が, を) and auxiliaries are
-              excluded since they don't carry meaning on their own.
+              excluded since they don&apos;t carry meaning on their own.
             </p>
             <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 font-mono text-sm text-indigo-300">
               score = known unique words ÷ total unique words × 100
@@ -57,7 +57,7 @@ export default function AboutPage() {
               a reasonable approximation, not a definitive standard.
             </p>
             <p className="text-slate-400 leading-relaxed">
-              The lists are cumulative: if you're placed at N3, Todoku assumes you know all N5, N4,
+              The lists are cumulative: if you&apos;re placed at N3, Todoku assumes you know all N5, N4,
               and N3 words. You can also mark individual words as known to fine-tune your score.
             </p>
           </section>
@@ -75,13 +75,13 @@ export default function AboutPage() {
           <section>
             <h2 className="text-lg font-semibold text-white mb-3">Why I built this</h2>
             <p className="text-slate-400 leading-relaxed mb-3">
-              I've been watching anime for 15+ years. Somewhere along the way I developed a genuine
+              I&apos;ve been watching anime for 15+ years. Somewhere along the way I developed a genuine
               interest in learning Japanese and tried a lot of approaches: apps, textbooks,
               structured study plans. But no matter what I tried, I always ended up back where I
               started, watching anime and listening to J-pop.
             </p>
             <p className="text-slate-400 leading-relaxed">
-              Eventually I stopped fighting it. If that's how I naturally spend my time anyway,
+              Eventually I stopped fighting it. If that&apos;s how I naturally spend my time anyway,
               why not turn it into the study? Todoku is the tool I wished existed: something that
               meets you where you already are, and tells you exactly how much you understand and
               what to learn next.
@@ -94,7 +94,7 @@ export default function AboutPage() {
               <li>• Scoring is based on <em>vocabulary</em> recognition, not grammar comprehension. You could score 90% and still not understand a sentence due to unfamiliar grammar patterns.</li>
               <li>• The JLPT word lists are approximations and may differ from other resources.</li>
               <li>• Subtitle files vary in quality. Machine-generated or poorly formatted files may skew results.</li>
-              <li>• Named entities (character names, place names) are counted as unknown words even if you'd recognize them in context.</li>
+              <li>• Named entities (character names, place names) are counted as unknown words even if you&apos;d recognize them in context.</li>
             </ul>
           </section>
 

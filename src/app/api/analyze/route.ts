@@ -2,10 +2,12 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { parseSRT } from '@/lib/srt-parser';
-import { analyzeText } from '@/lib/comprehension';
+import { scoreFrequency } from '@/lib/comprehension';
+import { getFrequency } from '@/lib/analysis-cache';
 import { JLPTLevel } from '@/types';
 
 export async function POST(req: NextRequest) {
+  const start = Date.now();
   try {
     // Free & unlimited for everyone. Per-minute abuse protection lives in middleware.ts.
     const formData = await req.formData();
@@ -34,8 +36,13 @@ export async function POST(req: NextRequest) {
     const extraKnown = (JSON.parse((formData.get('extraKnownWords') as string) || '[]') as string[])
       .slice(0, 5000)
       .filter((w): w is string => typeof w === 'string' && w.length <= 20);
-    const result = await analyzeText(text, userLevel, new Set(extraKnown));
-    return NextResponse.json(result);
+    const tokenizeStart = Date.now();
+    const { freq, cached } = await getFrequency(text, userLevel);
+    const tokenizeMs = Date.now() - tokenizeStart;
+    // Known words are applied after the cache read so personalization stays per-request
+    const result = scoreFrequency(freq, userLevel, new Set(extraKnown));
+    console.log(`analyze cache=${cached ? 'hit' : 'miss'} tokenize=${tokenizeMs}ms total=${Date.now() - start}ms`);
+    return NextResponse.json({ ...result, charCount: text.length });
   } catch (err) {
     console.error('analyze error:', err);
     return NextResponse.json({ error: 'Analysis failed' }, { status: 500 });

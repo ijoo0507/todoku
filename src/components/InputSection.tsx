@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { JLPTLevel, AnalysisResult } from '@/types';
+import { track } from '@/lib/analytics';
 
 interface Props {
   userLevel: JLPTLevel;
-  onResult: (result: AnalysisResult) => void;
+  onResult: (result: AnalysisResult, fileName?: string) => void;
   onLevelChange: (level: JLPTLevel) => void;
   extraKnownWords?: Set<string>;
 }
@@ -16,16 +18,32 @@ export default function InputSection({ userLevel, onResult, onLevelChange, extra
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [warm, setWarm] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { status } = useSession();
 
-  const analyze = async (formData: FormData) => {
+  // Load the tokenizer dictionary in the background so the first analyze is fast
+  useEffect(() => {
+    fetch('/api/warm')
+      .catch(() => {})
+      .finally(() => setWarm(true));
+  }, []);
+
+  const analyze = async (formData: FormData, fileName?: string) => {
     setLoading(true);
     setError('');
     try {
       const res = await fetch('/api/analyze', { method: 'POST', body: formData });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      onResult(data);
+      track('analyze_run', {
+        mode: formData.get('mode') as string,
+        userLevel,
+        charCount: data.charCount,
+        comprehensionScore: data.comprehensionScore,
+        authed: status === 'authenticated',
+      });
+      onResult(data, fileName);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Analysis failed');
     } finally {
@@ -39,7 +57,7 @@ export default function InputSection({ userLevel, onResult, onLevelChange, extra
     fd.append('file', file);
     fd.append('userLevel', userLevel);
     fd.append('extraKnownWords', JSON.stringify([...(extraKnownWords ?? [])]));
-    analyze(fd);
+    analyze(fd, file.name);
   };
 
   const handleText = () => {
@@ -161,7 +179,9 @@ export default function InputSection({ userLevel, onResult, onLevelChange, extra
 
       {loading && (
         <div className="mt-4 text-center text-slate-400 text-sm animate-pulse">
-          Tokenizing Japanese... this takes a moment
+          {warm
+            ? 'Tokenizing Japanese... this takes a moment'
+            : 'Warming up the Japanese dictionary. The first run can take 10 to 20 seconds.'}
         </div>
       )}
       {error && (
