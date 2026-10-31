@@ -62,7 +62,7 @@ GOOGLE_CLIENT_SECRET=      # Google OAuth client secret
 NEXT_PUBLIC_SITE_URL=      # e.g. https://todoku.app, used for share links and OG cards
 NEXT_PUBLIC_POSTHOG_KEY=   # PostHog project key; analytics are off when empty
 UPSTASH_REDIS_REST_URL=    # Upstash Redis for rate limits + analysis cache
-UPSTASH_REDIS_REST_TOKEN=  # both fail open (no limit, no cache) when empty
+UPSTASH_REDIS_REST_TOKEN=  # optional: without them, limits are per-server and there is no cache
 ```
 
 Set up or update the database schema (safe to re-run):
