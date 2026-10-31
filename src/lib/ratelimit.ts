@@ -34,6 +34,27 @@ function getLimiters(): Record<LimitKind, Ratelimit> | null {
   return _limiters;
 }
 
+// Per-instance fallback used when Upstash isn't configured or is unreachable.
+// Not shared across serverless instances, but far better than no limit.
+const WINDOW_MS = 60_000;
+const MAX_MEMORY_KEYS = 10_000;
+const memoryStore = new Map<string, { count: number; resetAt: number }>();
+
+function checkMemory(kind: LimitKind, key: string): { ok: boolean; retryAfter: number } {
+  const now = Date.now();
+  if (memoryStore.size > MAX_MEMORY_KEYS) {
+    for (const [k, v] of memoryStore) if (now > v.resetAt) memoryStore.delete(k);
+  }
+  const entry = memoryStore.get(key);
+  if (!entry || now > entry.resetAt) {
+    memoryStore.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    return { ok: true, retryAfter: 0 };
+  }
+  entry.count++;
+  const retryAfter = Math.max(1, Math.ceil((entry.resetAt - now) / 1000));
+  return { ok: entry.count <= LIMITS[kind], retryAfter };
+}
+
 let warnedMissing = false;
 
 export async function checkLimit(
@@ -43,18 +64,18 @@ export async function checkLimit(
   const limiters = getLimiters();
   if (!limiters) {
     if (!warnedMissing) {
-      console.error('ratelimit: UPSTASH_REDIS_REST_URL/TOKEN not set, allowing all requests');
+      console.error('ratelimit: UPSTASH_REDIS_REST_URL/TOKEN not set, using in-memory limits');
       warnedMissing = true;
     }
-    return { ok: true, retryAfter: 0 };
+    return checkMemory(kind, key);
   }
   try {
     const { success, reset } = await limiters[kind].limit(key);
     const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000));
     return { ok: success, retryAfter };
   } catch (err) {
-    // Fail open: a Redis outage should not take the app down
-    console.error('ratelimit: redis error, allowing request', err);
-    return { ok: true, retryAfter: 0 };
+    // A Redis outage should not take the app down; degrade to per-instance limits
+    console.error('ratelimit: redis error, using in-memory limits', err);
+    return checkMemory(kind, key);
   }
 }
