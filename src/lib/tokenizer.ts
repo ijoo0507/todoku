@@ -57,13 +57,36 @@ export async function tokenizeText(text: string): Promise<Token[]> {
       if (t.pos_detail_1 === '固有名詞') return false;
       return true;
     })
-    .map(t => ({
-      surface: t.surface_form,
-      reading: katakanaToHiragana(t.reading || t.surface_form),
-      basicForm: t.basic_form || t.surface_form,
-      pos: t.pos,
-      posDetail: t.pos_detail_1 || '',
-    }));
+    .map(t => {
+      const basicForm = t.basic_form && t.basic_form !== '*' ? t.basic_form : t.surface_form;
+      return {
+        surface: t.surface_form,
+        // The word list shows the dictionary form, so the reading must be the
+        // dictionary form's too (降っ reads ふっ, but 降る reads ふる)
+        reading: basicForm === t.surface_form
+          ? katakanaToHiragana(t.reading || t.surface_form)
+          : lemmaReading(tokenizer, basicForm),
+        basicForm,
+        pos: t.pos,
+        posDetail: t.pos_detail_1 || '',
+      };
+    });
+}
+
+// Dictionary forms repeat across texts, so their readings are cached
+const _lemmaReadings = new Map<string, string>();
+const LEMMA_CACHE_MAX = 20_000;
+
+function lemmaReading(tokenizer: kuromoji.Tokenizer<kuromoji.IpadicFeatures>, basicForm: string): string {
+  const cached = _lemmaReadings.get(basicForm);
+  if (cached !== undefined) return cached;
+
+  const reading = katakanaToHiragana(
+    tokenizer.tokenize(basicForm).map(t => t.reading || t.surface_form).join('')
+  );
+  if (_lemmaReadings.size >= LEMMA_CACHE_MAX) _lemmaReadings.clear();
+  _lemmaReadings.set(basicForm, reading);
+  return reading;
 }
 
 // Convert katakana reading to hiragana for display

@@ -14,7 +14,7 @@ export function normalizeText(text: string): string {
 
 export function cacheKey(text: string, userLevel: JLPTLevel): string {
   const hash = createHash('sha256').update(normalizeText(text) + userLevel).digest('hex');
-  return `analysis:v1:${hash}`;
+  return `analysis:v2:${hash}`;
 }
 
 /**
